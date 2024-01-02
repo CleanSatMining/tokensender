@@ -5,7 +5,7 @@ import sqlite3 from 'sqlite3';
 import fs from 'fs/promises';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'savedData.json');
+const dataFilePath = path.join(process.cwd(), 'savedData.json');
 
 type UserData = {
   email: string;
