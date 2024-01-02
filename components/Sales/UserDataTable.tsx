@@ -10,15 +10,29 @@ const UserDataTable: React.FC<UserDataTableProps> = () => {
   const [userData, setUserData] = useState<UserData[]>([]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/getAllUserData');
+        const result = await response.json();
+
+        const d: UserData[] = result.data || [];
+        console.log('setUserData', JSON.stringify(d, null, 4));
+        setUserData(d);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données :', error);
+      }
+    };
+
+    fetchData();
     // Appelle l'API getAllUserData lors du montage du composant
-    fetch('/api/getAllUserData')
-      .then((response) => response.json())
-      .then((data) => {
-        setUserData(data.userData || []);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
+    // fetch('/api/getAllUserData')
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     setUserData(data.userData || []);
+    //   })
+    //   .catch((error) => {
+    //     console.error('Error fetching data:', error);
+    //   });
   }, []);
 
   const columns = [
@@ -31,6 +45,9 @@ const UserDataTable: React.FC<UserDataTableProps> = () => {
     { name: 'btc Address', align: 'center' },
     { name: 'tokenAmount', align: 'center' },
   ];
+
+  console.log('userData:', userData);
+
   const rows = userData.map((user, index) => (
     <Table.Tr key={index}>
       <Table.Td>

@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       parsedData.push(userDataList);
 
       // Enregistre les données mises à jour dans le fichier
-      await fs.writeFile(dataFilePath, JSON.stringify(parsedData, null, 2));
+      await fs.writeFile(dataFilePath, JSON.stringify(userDataList, null, 2));
 
       return res.status(200).json({ success: true, message: 'Données enregistrées avec succès.' });
     } catch (error) {
