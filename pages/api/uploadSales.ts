@@ -80,6 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { userDataList } = req.body;
 
     try {
+      await fs.access(dataFilePath);
+    } catch (error) {
+      await fs.writeFile(dataFilePath, '[]', 'utf-8');
+    }
+
+    try {
       // Charge les données existantes depuis le fichier
       const existingData = await fs.readFile(dataFilePath, 'utf-8');
       const parsedData = JSON.parse(existingData);
