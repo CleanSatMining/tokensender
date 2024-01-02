@@ -2,6 +2,10 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import sqlite3 from 'sqlite3';
+import fs from 'fs/promises';
+import path from 'path';
+
+const dataFilePath = path.join(process.cwd(), 'data', 'savedData.json');
 
 type UserData = {
   email: string;
@@ -74,6 +78,23 @@ function insertUserData(db: sqlite3.Database, userData: UserData) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { userDataList } = req.body;
+
+    try {
+      // Charge les données existantes depuis le fichier
+      const existingData = await fs.readFile(dataFilePath, 'utf-8');
+      const parsedData = JSON.parse(existingData);
+
+      // Ajoute les nouvelles données
+      parsedData.push(userDataList);
+
+      // Enregistre les données mises à jour dans le fichier
+      await fs.writeFile(dataFilePath, JSON.stringify(parsedData, null, 2));
+
+      return res.status(200).json({ success: true, message: 'Données enregistrées avec succès.' });
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement des données :", error);
+      return res.status(500).json({ success: false, error: 'Erreur serveur interne.' });
+    }
 
     if (!userDataList || !Array.isArray(userDataList)) {
       return res.status(400).json({ error: 'Invalid request payload' });
