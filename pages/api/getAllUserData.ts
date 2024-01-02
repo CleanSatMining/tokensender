@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('Data fetched from the database:', rows);
       return res.status(200).json({ userData: rows });
     });
+    db.close();
   } else {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

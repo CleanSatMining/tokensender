@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Requête pour rechercher dans la base de données à partir de l'adresse e-mail
       db.all('SELECT * FROM UserData WHERE email = ?', [email.toLowerCase()], (err, rows) => {
         if (err) {
+          db.close();
           console.error('Error searching in the database:', err);
           res.status(500).json({ error: 'Internal Server Error' });
         } else {
@@ -29,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({ results: rows });
         }
       });
+      db.close();
     } else {
       res.status(405).json({ error: 'Method Not Allowed' });
     }
