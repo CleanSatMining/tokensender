@@ -18,30 +18,30 @@ function createDatabase() {
   const db = new sqlite3.Database('sales.db'); // Renomme la base de données à sales.db
 
   // Vérifie si la table UserData existe
-  db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='UserData'", (err, table) => {
-    if (err) {
-      console.error('Error checking table existence:', err);
-      return;
-    }
+  //   db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='UserData'", (err, table) => {
+  //     if (err) {
+  //       console.error('Error checking table existence:', err);
+  //       return;
+  //     }
 
-    if (!table) {
-      // La table UserData n'existe pas, donc nous la créons
-      db.run(`
-      CREATE TABLE IF NOT EXISTS UserData (
-        id INTEGER PRIMARY KEY,
-        email TEXT,
-        usdcSend REAL,
-        usdcReceived REAL,
-        firstName TEXT,
-        lastName TEXT,
-        ethAddress TEXT,
-        btcAddress TEXT,
-        tokenAmount REAL
-      )
-      `);
-      console.log('UserData table created successfully');
-    }
-  });
+  //     if (!table) {
+  //       // La table UserData n'existe pas, donc nous la créons
+  //       db.run(`
+  //       CREATE TABLE IF NOT EXISTS UserData (
+  //         id INTEGER PRIMARY KEY,
+  //         email TEXT,
+  //         usdcSend REAL,
+  //         usdcReceived REAL,
+  //         firstName TEXT,
+  //         lastName TEXT,
+  //         ethAddress TEXT,
+  //         btcAddress TEXT,
+  //         tokenAmount REAL
+  //       )
+  //       `);
+  //       console.log('UserData table created successfully');
+  //     }
+  //   });
 
   return db;
 }
