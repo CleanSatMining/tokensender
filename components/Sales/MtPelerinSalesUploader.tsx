@@ -31,16 +31,35 @@ export type UserData = {
 };
 
 function parseCSVDataList(csvDataList: CSVData[]): UserData[] {
+  console.log('parse csv');
   return csvDataList.map((csvData) => {
+    let token = 0;
+    let usdcSend = 0;
+    let usdcReceived = 0;
+    try {
+      token = parseFloat(csvData['#tokens']);
+    } catch (e1) {
+      console.error('parse token', e1);
+    }
+    try {
+      usdcSend = parseFloat(csvData['USDC Amount without Fees']);
+    } catch (e1) {
+      console.error('parse usdcSend', e1);
+    }
+    try {
+      usdcReceived = parseFloat(csvData['USDC Amount With Fees']);
+    } catch (e1) {
+      console.error('parse usdcReceived', e1);
+    }
     const userData: UserData = {
       email: csvData.Email.toLowerCase(),
-      usdcSend: parseFloat(csvData['USDC Amount without Fees']),
-      usdcReceived: parseFloat(csvData['USDC Amount With Fees']),
+      usdcSend,
+      usdcReceived,
       firstName: csvData['First name'],
       lastName: csvData['Last name'],
       ethAddress: csvData['ETH Address'].toLowerCase(),
       btcAddress: csvData['BTC Address'].toLowerCase(),
-      tokenAmount: parseFloat(csvData['#tokens']),
+      tokenAmount: token,
     };
 
     return userData;
@@ -75,6 +94,8 @@ const MtPelerinSalesUploader: React.FC<MtPelerinSalesUploaderProps> = ({ onUploa
 
         setCSVData(result);
         onUpload(result);
+        const tempSales = parseCSVDataList(result);
+        console.log('Sales formated', JSON.stringify(tempSales, null, 4));
 
         // Call the API to upload the data
         const apiResponse = await fetch('/api/uploadSales', {
@@ -82,7 +103,7 @@ const MtPelerinSalesUploader: React.FC<MtPelerinSalesUploaderProps> = ({ onUploa
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userDataList: parseCSVDataList(result) }),
+          body: JSON.stringify({ userDataList: tempSales }),
         });
 
         if (!apiResponse.ok) {
