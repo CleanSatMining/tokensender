@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css';
+import Head from 'next/head';
 import React from 'react';
 import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { theme } from '../theme';
@@ -8,20 +9,21 @@ export const metadata = {
   description: 'Le site dupport de CleanSat Mining!',
 };
 
-export default function RootLayout({ children }: { children: any }) {
+export default function DefaultLayout({ children }: { children: any }) {
   return (
-    <html lang="en">
-      <head>
+    <div>
+      <Head>
+        <title>CSM - Sales</title>
         <ColorSchemeScript />
-        <link rel="shortcut icon" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.svg" />
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
         />
-      </head>
-      <body>
+      </Head>
+      <div>
         <MantineProvider theme={theme}>{children}</MantineProvider>
-      </body>
-    </html>
+      </div>
+    </div>
   );
 }
