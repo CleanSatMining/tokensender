@@ -3,6 +3,7 @@ import Head from 'next/head';
 import React from 'react';
 import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { theme } from '../theme';
+import '@mantine/dates/styles.css';
 
 export const metadata = {
   title: 'CleanSat Mining support',
