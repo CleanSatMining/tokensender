@@ -8,6 +8,9 @@ export const formatUsd = (
   oraclePrice = 1,
   hasData = true
 ) => {
+  if (symbol === '€') {
+    currency = 'EUR';
+  }
   if (!hasData) return ` - ${symbol}`;
 
   // TODO: bignum?
@@ -190,7 +193,7 @@ export function formatBigDecimals(num: number, maxPlaces = 8, strip = true) {
 }
 
 export function formatBTC(num: number) {
-  return `${formatBigDecimals(num)} ₿`;
+  return `${formatBigDecimals(num)}₿`;
 }
 
 export function formatTimestamp(timestamp: number): string {
@@ -198,12 +201,12 @@ export function formatTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
 
   // Utiliser les méthodes de l'objet Date pour extraire les composants de la date
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
 
   // Retourner la date formatée
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
@@ -213,9 +216,9 @@ export function formatTimestampDay(timestamp: number): string {
   const date = new Date(timestamp);
 
   // Utiliser les méthodes de l'objet Date pour extraire les composants de la date
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
 
   // Retourner la date formatée
   return `${day}/${month}/${year}`;
@@ -225,9 +228,9 @@ export function formatTimestampHour(timestamp: number): string {
   const date = new Date(timestamp);
 
   // Utiliser les méthodes de l'objet Date pour extraire les composants de la date
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
 
   // Retourner la date formatée
   return `${hours}:${minutes}:${seconds}`;

@@ -1,3 +1,5 @@
+import { Site as SiteData } from '@/components/Types/Site';
+
 export type Expense = {
   id: string;
   dateTime: number;
@@ -12,4 +14,5 @@ export type Site = {
   name: string;
   shortName: string;
   expenses: Expense[];
+  data?: SiteData;
 };
