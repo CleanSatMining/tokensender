@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "L'id du site est requis." });
     }
 
-    const { dateTime, electricity, csm, operator } = ;
+    const { dateTime, electricity, csm, operator } = req.body;
 
     if (!dateTime || !electricity || !csm || !operator) {
       return res
