@@ -8,7 +8,7 @@ import DefaultLayout from '@/layouts/DefaultLayout';
 
 export default function Whitelisting() {
   return (
-    <DefaultLayout>
+    <DefaultLayout title="CSM - Whitelisting">
       <Welcome />
       <ColorSchemeToggle />
       <CSVUploader />

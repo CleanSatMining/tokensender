@@ -10,11 +10,11 @@ export const metadata = {
   description: 'Le site dupport de CleanSat Mining!',
 };
 
-export default function DefaultLayout({ children }: { children: any }) {
+export default function DefaultLayout({ title, children }: { title?: string; children: any }) {
   return (
     <div>
       <Head>
-        <title>CSM - Sales</title>
+        <title>{title ?? 'CSM - Sales'}</title>
         <ColorSchemeScript />
         <link rel="icon" href="/favicon.svg" />
         <meta

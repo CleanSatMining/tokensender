@@ -15,7 +15,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { dateTime, electricity, csm, operator } = req.body;
 
-    if (!dateTime || !electricity || !csm || !operator) {
+    if (!dateTime || electricity === undefined || csm === undefined || operator === undefined) {
+      // console.log(
+      //   'Les paramètres dateTime, electricity, csm et operator sont requis.',
+      //   JSON.stringify(req.body),
+      //   dateTime,
+      //   electricity,
+      //   csm,
+      //   operator
+      // );
       return res
         .status(400)
         .json({ error: 'Les paramètres dateTime, electricity, csm et operator sont requis.' });

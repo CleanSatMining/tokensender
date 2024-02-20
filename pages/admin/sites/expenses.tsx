@@ -86,7 +86,7 @@ const AddExpensePage: React.FC = () => {
     operator: number;
     dateTime: Date;
   }) => {
-    await fetch(`/api/sites/${siteId}/expenses/add`);
+    //await fetch(`/api/sites/${siteId}/expenses/add`);
 
     try {
       const response = await fetch(`/api/sites/${siteId}/expenses/add`, {
@@ -257,7 +257,7 @@ const AddExpensePage: React.FC = () => {
   ));
 
   return (
-    <DefaultLayout>
+    <DefaultLayout title="CSM - Expenses">
       <Container>
         <h1>Ajouter ou supprimer une dépense</h1>
 

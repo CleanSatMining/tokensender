@@ -24,7 +24,7 @@ const SalesPage: React.FC = () => {
   // Affiche le composant uniquement sur la page /admin/sales
 
   return (
-    <DefaultLayout>
+    <DefaultLayout title="CSM - Sales">
       <div>
         <h1>Sales Page</h1>
 
