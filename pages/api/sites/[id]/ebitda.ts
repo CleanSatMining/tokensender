@@ -59,13 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Erreur lors de la récupération des sites :', error);
     }
   }
-  const { startTimestamp, endTimestamp, btcPrice } = requestBody;
+  const { startTimestamp, endTimestamp, btcPrice, basePricePerKWH } = requestBody;
 
   try {
     const body = {
       startTimestamp,
       endTimestamp,
       btcPrice,
+      basePricePerKWH,
     };
     const response = await fetch(`https://dashboard.cleansatmining.net/api/sites/${id}/ebitda`, {
       method: 'POST',
