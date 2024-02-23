@@ -18,7 +18,7 @@ import { MonthPickerInput, DateValue } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrash, IconEdit, IconCheck, IconX, IconReload } from '@tabler/icons-react';
-
+import BigNumber from 'bignumber.js';
 import DefaultLayout from '@/layouts/DefaultLayout';
 import { Expense, Site } from '@/components/Types/types';
 import { Site as SiteData } from '@/components/Types/Site';
@@ -65,7 +65,10 @@ const AddExpensePage: React.FC = () => {
   const [currency, setCurrency] = useState<string>('$');
   const [siteData, setSiteData] = useState<Map<string, SiteData>>(new Map());
   const [baseElectricityPrice, setBaseElectricityPrice] = useState<number>(0);
+  const [electricityBillingAmount, setElectricityBillingAmount] = useState<number>(0);
+  const [electricityBillingAmountInput, setElectricityBillingAmountInput] = useState<number>(0);
   const [baseElectricityPriceInput, setBaseElectricityPriceInput] = useState<number>(0);
+  const [electricityPriceModeChecked, setElectricityPriceModeChecked] = useState(true);
   const form = useForm({
     initialValues: { csm: 0, electricity: 0, operator: 0, dateTime: new Date() },
 
@@ -134,10 +137,10 @@ const AddExpensePage: React.FC = () => {
 
   const fetchBtcPrice = async () => {
     try {
-      console.log('fetch btc price');
+      //console.log('fetch btc price');
       const response = await fetch('/api/quote/bitcoin');
       const jsonData = await response.json();
-      console.log('fetch btc price', JSON.stringify(jsonData, null, 4));
+      //console.log('fetch btc price', JSON.stringify(jsonData, null, 4));
       setBtcPrice(jsonData.price);
 
       setBtcPriceInput(jsonData.price);
@@ -190,6 +193,15 @@ const AddExpensePage: React.FC = () => {
     const getExpenses = getSiteExpenses(siteId, setExpenses);
     getExpenses();
     setBaseElectricityPrice(siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0);
+    setBaseElectricityPriceInput(siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0);
+    if (siteId === '3') {
+      //cas omega
+      setElectricityPriceModeChecked(false);
+      setCurrency('€');
+    } else {
+      setElectricityPriceModeChecked(true);
+      setCurrency('$');
+    }
   }, [siteId]);
 
   useEffect(() => {
@@ -221,13 +233,55 @@ const AddExpensePage: React.FC = () => {
           body: JSON.stringify(body),
         });
         const jsonData: EbitdaData = await response.json();
-        console.log(
+        /* console.log(
           'jsonData',
           month?.getTime(),
           JSON.stringify(body, null, 4),
           JSON.stringify(jsonData, null, 4)
-        );
-        setEbitdaData(jsonData);
+        ); */
+
+        if (
+          !electricityPriceModeChecked &&
+          Math.abs(
+            new BigNumber(electricityBillingAmount)
+              .minus(jsonData.electricityCost.usd)
+              .dividedBy(electricityBillingAmount)
+              .toNumber()
+          ) > 0.01
+        ) {
+          const calculatedElectricityPrice = new BigNumber(baseElectricityPrice)
+            .times(electricityBillingAmount)
+            .dividedBy(jsonData.electricityCost.usd)
+            .toNumber();
+          /* console.log(
+            'calculatedElectricityPrice',
+            jsonData.electricityCost.usd,
+            electricityBillingAmount,
+            calculatedElectricityPrice
+          ); */
+          setBaseElectricityPrice(calculatedElectricityPrice);
+          const bodyRetry = {
+            startTimestamp: month ? getFirstDayOfMonth(month.getTime()) : 0,
+            endTimestamp: month ? getLastDayOfMonth(month.getTime()) : 0,
+            btcPrice,
+            basePricePerKWH: calculatedElectricityPrice,
+          };
+
+          const responseRetry = await fetch(`/api/sites/${siteId}/ebitda`, {
+            method: 'POST',
+            body: JSON.stringify(bodyRetry),
+          });
+          const jsonDataRetry: EbitdaData = await responseRetry.json();
+          console.log(
+            'jsonDataRetry',
+            month?.getTime(),
+            JSON.stringify(bodyRetry, null, 4),
+            JSON.stringify(jsonDataRetry, null, 4)
+          );
+          setEbitdaData(jsonDataRetry);
+        } else {
+          setEbitdaData(jsonData);
+        }
       } catch (error) {
         console.error('Error fetching ebitda:', error);
       }
@@ -236,7 +290,7 @@ const AddExpensePage: React.FC = () => {
     if (modalAddOpened && month) {
       fetchEbitda();
     }
-  }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice]);
+  }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice, electricityBillingAmount]);
 
   const rows = expenses.map((expense) => (
     <Table.Tr key={expense.id}>
@@ -312,8 +366,11 @@ const AddExpensePage: React.FC = () => {
       <Modal
         opened={modalAddOpened}
         onClose={() => {
-          close();
           setEditBtcPrice(false);
+          setEditBaseElectricityPrice(false);
+          setMonth(undefined);
+          setEbitdaData(undefined);
+          close();
         }}
         title={`${sites.find((s) => s.id === siteId)?.name} : Ajouter une dépense`}
         overlayProps={{
@@ -323,6 +380,7 @@ const AddExpensePage: React.FC = () => {
       >
         <form onSubmit={form.onSubmit((values) => handleAddExpense(values))}>
           <MonthPickerInput
+            clearable
             label="Mois des dépenses"
             mt="sm"
             {...form.getInputProps('dateTime')}
@@ -403,22 +461,56 @@ const AddExpensePage: React.FC = () => {
             </Group>
           </Group>
           <Group justify="space-between">
-            <Text>Prix électricité</Text>
+            <SegmentedControl
+              size="xs"
+              radius="sm"
+              data={['Prix élec.', 'Facture élec.']}
+              onChange={(value) => setElectricityPriceModeChecked(value === 'Prix élec.')}
+              value={electricityPriceModeChecked ? 'Prix élec.' : 'Facture élec.'}
+            />
+            {/* <Switch
+              checked={electricityPriceModeChecked}
+              onChange={(event) => setElectricityPriceModeChecked(event.currentTarget.checked)}
+              label={electricityPriceModeChecked ? 'Prix électricité' : 'Facture électricité'}
+            /> */}
+
             <Group gap={0}>
               {!editBaseElectricityPrice && (
-                <Text fw={500}>{`${currency}${baseElectricityPrice}/kwh`}</Text>
+                <Text fw={500}>
+                  {`${currency}${electricityPriceModeChecked ? new BigNumber(baseElectricityPriceInput).toPrecision(5).replace(/(\.\d*?[1-9])0*$/g, '$1') : electricityBillingAmount}${electricityPriceModeChecked ? '/kwh' : ''}`}
+                </Text>
               )}
-              {editBaseElectricityPrice && (
+              {editBaseElectricityPrice && electricityPriceModeChecked && (
                 <NumberInput
                   prefix={currency}
                   variant="filled"
-                  placeholder={baseElectricityPrice.toString()}
+                  placeholder={new BigNumber(baseElectricityPriceInput)
+                    .toPrecision(5)
+                    .replace(/(\.\d*?[1-9])0*$/g, '$1')}
                   value={baseElectricityPriceInput}
                   size="sm"
                   w={120}
+                  decimalScale={6}
                   allowNegative={false}
                   onChange={(v) =>
                     setBaseElectricityPriceInput(typeof v === 'number' ? v : baseElectricityPrice)
+                  }
+                />
+              )}
+              {editBaseElectricityPrice && !electricityPriceModeChecked && (
+                <NumberInput
+                  prefix={currency}
+                  variant="filled"
+                  placeholder={electricityBillingAmount.toString()}
+                  value={electricityBillingAmountInput}
+                  size="sm"
+                  w={120}
+                  allowNegative={false}
+                  decimalScale={2}
+                  onChange={(v) =>
+                    setElectricityBillingAmountInput(
+                      typeof v === 'number' ? v : electricityBillingAmount
+                    )
                   }
                 />
               )}
@@ -428,6 +520,7 @@ const AddExpensePage: React.FC = () => {
                   aria-label="Edit"
                   onClick={() => {
                     setBaseElectricityPriceInput(baseElectricityPrice);
+                    setElectricityBillingAmountInput(electricityBillingAmount);
                     setEditBaseElectricityPrice(true);
                   }}
                 >
@@ -444,6 +537,8 @@ const AddExpensePage: React.FC = () => {
                   setBaseElectricityPrice(
                     siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
                   );
+                  setElectricityBillingAmountInput(0);
+                  setElectricityBillingAmount(0);
                 }}
               >
                 <IconReload style={{ width: '70%', height: '70%' }} stroke={1.5} />
@@ -464,6 +559,7 @@ const AddExpensePage: React.FC = () => {
                     aria-label="Edit"
                     onClick={() => {
                       setBaseElectricityPrice(baseElectricityPriceInput);
+                      setElectricityBillingAmount(electricityBillingAmountInput);
                       setEditBaseElectricityPrice(false);
                     }}
                   >

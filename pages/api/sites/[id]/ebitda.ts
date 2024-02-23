@@ -73,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       body: JSON.stringify(body),
     });
     const jsonData: EbitdaDataReceived = await response.json();
+    //console.log('electricityCost', jsonData.electricityCost);
     return res.status(200).json(mapEbitdaData(jsonData));
   } catch (error) {
     console.error('Erreur lors de la récupération des sites :', error);
