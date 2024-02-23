@@ -221,12 +221,18 @@ const AddExpensePage: React.FC = () => {
   useEffect(() => {
     const fetchEbitda = async () => {
       try {
+        const electricityPrice =
+          !electricityPriceModeChecked && baseElectricityPrice === 0
+            ? siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
+            : baseElectricityPrice;
         const body = {
           startTimestamp: month ? getFirstDayOfMonth(month.getTime()) : 0,
           endTimestamp: month ? getLastDayOfMonth(month.getTime()) : 0,
           btcPrice,
-          basePricePerKWH: baseElectricityPrice,
+          basePricePerKWH: electricityPrice,
         };
+
+        //console.log('fetchEbitda', JSON.stringify(body, null, 4));
 
         const response = await fetch(`/api/sites/${siteId}/ebitda`, {
           method: 'POST',
@@ -249,17 +255,18 @@ const AddExpensePage: React.FC = () => {
               .toNumber()
           ) > 0.01
         ) {
-          const calculatedElectricityPrice = new BigNumber(baseElectricityPrice)
+          const calculatedElectricityPrice = new BigNumber(electricityPrice)
             .times(electricityBillingAmount)
             .dividedBy(jsonData.electricityCost.usd)
             .toNumber();
-          /* console.log(
-            'calculatedElectricityPrice',
-            jsonData.electricityCost.usd,
-            electricityBillingAmount,
-            calculatedElectricityPrice
-          ); */
+          // console.log(
+          //   'calculatedElectricityPrice',
+          //   jsonData.electricityCost.usd,
+          //   electricityBillingAmount,
+          //   calculatedElectricityPrice
+          // );
           setBaseElectricityPrice(calculatedElectricityPrice);
+          setBaseElectricityPriceInput(calculatedElectricityPrice);
           const bodyRetry = {
             startTimestamp: month ? getFirstDayOfMonth(month.getTime()) : 0,
             endTimestamp: month ? getLastDayOfMonth(month.getTime()) : 0,
@@ -272,12 +279,12 @@ const AddExpensePage: React.FC = () => {
             body: JSON.stringify(bodyRetry),
           });
           const jsonDataRetry: EbitdaData = await responseRetry.json();
-          console.log(
-            'jsonDataRetry',
-            month?.getTime(),
-            JSON.stringify(bodyRetry, null, 4),
-            JSON.stringify(jsonDataRetry, null, 4)
-          );
+          // console.log(
+          //   'jsonDataRetry',
+          //   month?.getTime(),
+          //   JSON.stringify(bodyRetry, null, 4),
+          //   JSON.stringify(jsonDataRetry, null, 4)
+          // );
           setEbitdaData(jsonDataRetry);
         } else {
           setEbitdaData(jsonData);
