@@ -235,3 +235,9 @@ export function formatTimestampHour(timestamp: number): string {
   // Retourner la date formatée
   return `${hours}:${minutes}:${seconds}`;
 }
+
+export function formatTimestampMonth(timestamp: number): string {
+  const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+  const formattedDate: string = new Date(timestamp).toLocaleDateString('fr-FR', options);
+  return formattedDate;
+}

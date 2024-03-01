@@ -22,7 +22,13 @@ import BigNumber from 'bignumber.js';
 import DefaultLayout from '@/layouts/DefaultLayout';
 import { Expense, Site } from '@/components/Types/types';
 import { Site as SiteData } from '@/components/Types/Site';
-import { formatBTC, formatTimestampDay, formatUsd, formatPercent } from '@/components/Utils/format';
+import {
+  formatBTC,
+  formatTimestampDay,
+  formatUsd,
+  formatPercent,
+  formatTimestampMonth,
+} from '@/components/Utils/format';
 import { getFirstDayOfMonth, getLastDayOfMonth } from '@/components/Utils/date';
 
 type EbitdaData = {
@@ -301,7 +307,7 @@ const AddExpensePage: React.FC = () => {
 
   const rows = expenses.map((expense) => (
     <Table.Tr key={expense.id}>
-      <Table.Td>{formatTimestampDay(expense.dateTime)}</Table.Td>
+      <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
       <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
       <Table.Td>{formatBTC(expense.csm)}</Table.Td>
       <Table.Td>{formatBTC(expense.operator)}</Table.Td>
@@ -338,10 +344,10 @@ const AddExpensePage: React.FC = () => {
           <Table>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Date</Table.Th>
-                <Table.Th>Electricity</Table.Th>
+                <Table.Th>Période</Table.Th>
+                <Table.Th>Electricité</Table.Th>
                 <Table.Th>CSM</Table.Th>
-                <Table.Th>Operator</Table.Th>
+                <Table.Th>Opérateur</Table.Th>
                 <Table.Th />
                 <Table.Th />
               </Table.Tr>
