@@ -164,6 +164,12 @@ const AddExpensePage: React.FC = () => {
     form.setFieldValue('operator', expense.operator);
     setBtcPrice(expense.btcPrice ?? btcPrice);
     setCurrency(expense.currency ?? currency);
+    setElectricityBillingAmount(
+      new BigNumber(expense.electricity).times(expense.btcPrice ?? btcPrice).toNumber()
+    );
+    setElectricityBillingAmountInput(
+      new BigNumber(expense.electricity).times(expense.btcPrice ?? btcPrice).toNumber()
+    );
     setReadOnly(true);
     setSelectedExpenseId(expense.id);
     open();
