@@ -358,33 +358,36 @@ const AddExpensePage: React.FC = () => {
     setBaseElectricityPriceInput(siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0);
   }, [modalAddOpened]);
 
-  const rows = expenses.map((expense) => (
-    <Table.Tr
-      key={expense.id}
-      onClick={() => handleRowClick(expense)}
-      style={{ cursor: 'pointer' }}
-    >
-      <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
-      <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
-      <Table.Td>{formatBTC(expense.csm)}</Table.Td>
-      <Table.Td>{formatBTC(expense.operator)}</Table.Td>
-      <Table.Td>
-        {expense.btcPrice ? formatUsd(expense.btcPrice, 0, expense.currency) : ''}
-      </Table.Td>
-      <Table.Td>
-        <ActionIcon
-          variant="transparent"
-          color="red"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClickDeleteExpense(expense.id);
-          }}
-        >
-          <IconTrash />
-        </ActionIcon>
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const rows = expenses
+    .slice()
+    .sort((a, b) => b.dateTime - a.dateTime)
+    .map((expense) => (
+      <Table.Tr
+        key={expense.id}
+        onClick={() => handleRowClick(expense)}
+        style={{ cursor: 'pointer' }}
+      >
+        <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
+        <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
+        <Table.Td>{formatBTC(expense.csm)}</Table.Td>
+        <Table.Td>{formatBTC(expense.operator)}</Table.Td>
+        <Table.Td>
+          {expense.btcPrice ? formatUsd(expense.btcPrice, 0, expense.currency) : ''}
+        </Table.Td>
+        <Table.Td>
+          <ActionIcon
+            variant="transparent"
+            color="red"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClickDeleteExpense(expense.id);
+            }}
+          >
+            <IconTrash />
+          </ActionIcon>
+        </Table.Td>
+      </Table.Tr>
+    ));
 
   return (
     <DefaultLayout title="CSM - Expenses">
