@@ -81,7 +81,9 @@ const AddExpensePage: React.FC = () => {
     // functions will be used to validate values at corresponding key
     validate: {
       dateTime: (value) =>
-        value.getTime() > new Date().getTime() ? "La date doit anterieur à aujourd'hui" : null,
+        value !== null && value !== undefined && value.getTime() > new Date().getTime()
+          ? "La date doit anterieur à aujourd'hui"
+          : null,
       csm: (value) => (value < 0 ? 'Les frais CSM doivent être superieur à 0' : null),
       electricity: (value) =>
         value < 0 ? "La note d'electricité doivent être superieur à 0" : null,
@@ -105,7 +107,7 @@ const AddExpensePage: React.FC = () => {
         },
         body: JSON.stringify({
           id: siteId,
-          dateTime: values.dateTime.getTime(),
+          dateTime: month ? month.getTime() : 0,
           electricity: values.electricity,
           csm: values.csm,
           operator: values.operator,
