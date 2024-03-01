@@ -14,6 +14,7 @@ import {
   NumberInput,
   Select,
   Title,
+  Switch,
 } from '@mantine/core';
 import { MonthPickerInput, DateValue } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
@@ -57,6 +58,7 @@ type EbitdaData = {
 
 const AddExpensePage: React.FC = () => {
   const [month, setMonth] = useState<DateValue | undefined>(undefined);
+  const [isFiat, setIsFiat] = useState(true);
   const [expenses, setExpenses] = useState<Expense[]>([]); // Remplacez [] par le type de votre modèle de données
   const [sites, setSites] = useState<Site[]>([]);
   const [siteId, setSiteId] = useState<string>('1');
@@ -368,9 +370,33 @@ const AddExpensePage: React.FC = () => {
         style={{ cursor: 'pointer' }}
       >
         <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
-        <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
-        <Table.Td>{formatBTC(expense.csm)}</Table.Td>
-        <Table.Td>{formatBTC(expense.operator)}</Table.Td>
+        <Table.Td>
+          {isFiat && expense.btcPrice
+            ? formatUsd(
+                new BigNumber(expense.btcPrice).times(expense.electricity).toNumber(),
+                0,
+                expense.currency
+              )
+            : formatBTC(expense.electricity)}
+        </Table.Td>
+        <Table.Td>
+          {isFiat && expense.btcPrice
+            ? formatUsd(
+                new BigNumber(expense.btcPrice).times(expense.csm).toNumber(),
+                0,
+                expense.currency
+              )
+            : formatBTC(expense.csm)}
+        </Table.Td>
+        <Table.Td>
+          {isFiat && expense.btcPrice
+            ? formatUsd(
+                new BigNumber(expense.btcPrice).times(expense.operator).toNumber(),
+                0,
+                expense.currency
+              )
+            : formatBTC(expense.operator)}
+        </Table.Td>
         <Table.Td>
           {expense.btcPrice ? formatUsd(expense.btcPrice, 0, expense.currency) : ''}
         </Table.Td>
@@ -404,7 +430,15 @@ const AddExpensePage: React.FC = () => {
               value: s.id,
             }))}
           />
-          <Button onClick={open}>Ajouter une dépense</Button>
+          <Group>
+            <Button onClick={open}>Ajouter une dépense</Button>
+            <Switch
+              defaultChecked
+              label="Afficher en FIAT ($,€)"
+              checked={isFiat}
+              onChange={(event) => setIsFiat(event.currentTarget.checked)}
+            />
+          </Group>
         </Stack>
         <Table.ScrollContainer minWidth={500}>
           <Table>
