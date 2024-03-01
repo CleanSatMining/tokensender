@@ -694,6 +694,11 @@ const AddExpensePage: React.FC = () => {
             min={0}
             required
           />
+          <Group>
+            <Text fw={700} size="xs" c="dimmed">
+              {`Facture électricité en ${currency} : ${formatUsd(new BigNumber(form.values.electricity).times(btcPrice).toNumber(), 0, currency)}`}
+            </Text>
+          </Group>
 
           {ebitdaData && (
             <Group>
@@ -712,6 +717,11 @@ const AddExpensePage: React.FC = () => {
             min={0}
             required
           />
+          <Group>
+            <Text fw={700} size="xs" c="dimmed">
+              {`Frais CSM en ${currency} : ${formatUsd(new BigNumber(form.values.csm).times(btcPrice).toNumber(), 0, currency)}`}
+            </Text>
+          </Group>
 
           {ebitdaData && (
             <Group>
@@ -730,6 +740,11 @@ const AddExpensePage: React.FC = () => {
             min={0}
             required
           />
+          <Group>
+            <Text fw={700} size="xs" c="dimmed">
+              {`Frais operateur en ${currency} : ${formatUsd(new BigNumber(form.values.operator).times(btcPrice).toNumber(), 0, currency)}`}
+            </Text>
+          </Group>
 
           {ebitdaData && (
             <Group>
