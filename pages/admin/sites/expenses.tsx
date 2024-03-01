@@ -13,6 +13,7 @@ import {
   Modal,
   NumberInput,
   Select,
+  Title,
 } from '@mantine/core';
 import { MonthPickerInput, DateValue } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
@@ -75,6 +76,8 @@ const AddExpensePage: React.FC = () => {
   const [electricityBillingAmountInput, setElectricityBillingAmountInput] = useState<number>(0);
   const [baseElectricityPriceInput, setBaseElectricityPriceInput] = useState<number>(0);
   const [electricityPriceModeChecked, setElectricityPriceModeChecked] = useState(true);
+  const [readOnly, setReadOnly] = useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string>('');
   const form = useForm({
     initialValues: { csm: 0, electricity: 0, operator: 0, dateTime: new Date() },
 
@@ -84,10 +87,16 @@ const AddExpensePage: React.FC = () => {
         value !== null && value !== undefined && value.getTime() > new Date().getTime()
           ? "La date doit anterieur à aujourd'hui"
           : null,
-      csm: (value) => (value < 0 ? 'Les frais CSM doivent être superieur à 0' : null),
+      csm: (value) =>
+        value !== null && value !== undefined && value < 0
+          ? 'Les frais CSM doivent être superieur à 0'
+          : null,
       electricity: (value) =>
         value < 0 ? "La note d'electricité doivent être superieur à 0" : null,
-      operator: (value) => (value < 0 ? "Les frais d'operateur doivent être superieur à 0" : null),
+      operator: (value) =>
+        value !== null && value !== undefined && value < 0
+          ? "Les frais d'operateur doivent être superieur à 0"
+          : null,
     },
   });
 
@@ -141,6 +150,29 @@ const AddExpensePage: React.FC = () => {
     const getExpenses = getSiteExpenses(siteId, setExpenses);
     getExpenses();
     closeConfirmation();
+  };
+
+  const handleRowClick = (expense: Expense) => {
+    setMonth(new Date(expense.dateTime));
+    form.setFieldValue('csm', expense.csm);
+    form.setFieldValue('electricity', expense.electricity);
+    form.setFieldValue('operator', expense.operator);
+    setReadOnly(true);
+    setSelectedExpenseId(expense.id);
+    open();
+  };
+
+  const handleModalClose = () => {
+    setEditBtcPrice(false);
+    setEditBaseElectricityPrice(false);
+    setMonth(undefined);
+    setEbitdaData(undefined);
+    setReadOnly(false);
+    setSelectedExpenseId('');
+    form.setFieldValue('csm', 0);
+    form.setFieldValue('electricity', 0);
+    form.setFieldValue('operator', 0);
+    close();
   };
 
   const fetchBtcPrice = async () => {
@@ -310,7 +342,11 @@ const AddExpensePage: React.FC = () => {
   }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice, electricityBillingAmount]);
 
   const rows = expenses.map((expense) => (
-    <Table.Tr key={expense.id}>
+    <Table.Tr
+      key={expense.id}
+      onClick={() => handleRowClick(expense)}
+      style={{ cursor: 'pointer' }}
+    >
       <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
       <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
       <Table.Td>{formatBTC(expense.csm)}</Table.Td>
@@ -319,7 +355,10 @@ const AddExpensePage: React.FC = () => {
         <ActionIcon
           variant="transparent"
           color="red"
-          onClick={() => handleClickDeleteExpense(expense.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClickDeleteExpense(expense.id);
+          }}
         >
           <IconTrash />
         </ActionIcon>
@@ -383,13 +422,13 @@ const AddExpensePage: React.FC = () => {
       <Modal
         opened={modalAddOpened}
         onClose={() => {
-          setEditBtcPrice(false);
-          setEditBaseElectricityPrice(false);
-          setMonth(undefined);
-          setEbitdaData(undefined);
-          close();
+          handleModalClose();
         }}
-        title={`${sites.find((s) => s.id === siteId)?.name} : Ajouter une dépense`}
+        title={
+          <Title order={4}>
+            {`${sites.find((s) => s.id === siteId)?.name} : ${readOnly && month ? formatTimestampMonth(month?.getTime()) : 'Ajouter une dépense'}`}
+          </Title>
+        }
         overlayProps={{
           backgroundOpacity: 0.55,
           blur: 3,
@@ -397,12 +436,14 @@ const AddExpensePage: React.FC = () => {
       >
         <form onSubmit={form.onSubmit((values) => handleAddExpense(values))}>
           <MonthPickerInput
+            readOnly={readOnly}
             clearable
             label="Mois des dépenses"
             mt="sm"
             {...form.getInputProps('dateTime')}
             onChange={setMonth}
             value={month}
+            required
           />
           <Group>
             {ebitdaData && (
@@ -626,6 +667,9 @@ const AddExpensePage: React.FC = () => {
             label="Facture électricité en Bitcoin (₿)"
             placeholder="Montant ₿"
             {...form.getInputProps('electricity')}
+            readOnly={readOnly}
+            min={0}
+            required
           />
 
           {ebitdaData && (
@@ -641,6 +685,9 @@ const AddExpensePage: React.FC = () => {
             label="Frais CSM en Bitcoin (₿)"
             placeholder="Montant ₿"
             {...form.getInputProps('csm')}
+            readOnly={readOnly}
+            min={0}
+            required
           />
 
           {ebitdaData && (
@@ -656,6 +703,9 @@ const AddExpensePage: React.FC = () => {
             label="Frais opérateur en Bitcoin (₿)"
             placeholder="Montant ₿"
             {...form.getInputProps('operator')}
+            readOnly={readOnly}
+            min={0}
+            required
           />
 
           {ebitdaData && (
@@ -666,9 +716,26 @@ const AddExpensePage: React.FC = () => {
               </Text>
             </Group>
           )}
-          <Button type="submit" mt="sm">
-            Submit
-          </Button>
+          {!readOnly && (
+            <Button type="submit" mt="sm">
+              Submit
+            </Button>
+          )}
+          {readOnly && selectedExpenseId !== '' && (
+            <Group justify="center">
+              <Button
+                mt="sm"
+                color="red"
+                onClick={() => {
+                  handleModalClose();
+                  handleClickDeleteExpense(selectedExpenseId);
+                }}
+                leftSection={<IconTrash />}
+              >
+                Supprimer
+              </Button>
+            </Group>
+          )}
         </form>
       </Modal>
     </DefaultLayout>
