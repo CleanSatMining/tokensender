@@ -39,6 +39,8 @@ async function getExpenses(siteId: string): Promise<Expense[]> {
       operator: expense.operator as number,
       electricity: expense.electricity as number,
       dateTime: parseInt(dateSeconde, 10) * 1000,
+      btcPrice: expense.btcPrice as number,
+      currency: expense.currency as string,
       siteId,
     };
 

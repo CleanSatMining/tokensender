@@ -64,6 +64,7 @@ const AddExpensePage: React.FC = () => {
   const [confirmationOpened, { toggle: toggleConfirmation, close: closeConfirmation }] =
     useDisclosure(false);
   const [modalAddOpened, { open, close }] = useDisclosure(false);
+  const [currentBtcPrice, setCurrentBtcPrice] = useState<number>(0);
   const [btcPrice, setBtcPrice] = useState<number>(0);
   const [btcPriceInput, setBtcPriceInput] = useState<number>(0);
   const [ebitdaData, setEbitdaData] = useState<EbitdaData | undefined>(undefined);
@@ -120,6 +121,8 @@ const AddExpensePage: React.FC = () => {
           electricity: values.electricity,
           csm: values.csm,
           operator: values.operator,
+          btcPrice,
+          currency,
         }),
       });
 
@@ -157,6 +160,8 @@ const AddExpensePage: React.FC = () => {
     form.setFieldValue('csm', expense.csm);
     form.setFieldValue('electricity', expense.electricity);
     form.setFieldValue('operator', expense.operator);
+    setBtcPrice(expense.btcPrice ?? btcPrice);
+    setCurrency(expense.currency ?? currency);
     setReadOnly(true);
     setSelectedExpenseId(expense.id);
     open();
@@ -168,6 +173,7 @@ const AddExpensePage: React.FC = () => {
     setMonth(undefined);
     setEbitdaData(undefined);
     setReadOnly(false);
+    setBtcPrice(currentBtcPrice);
     setSelectedExpenseId('');
     form.setFieldValue('csm', 0);
     form.setFieldValue('electricity', 0);
@@ -182,8 +188,8 @@ const AddExpensePage: React.FC = () => {
       const jsonData = await response.json();
       //console.log('fetch btc price', JSON.stringify(jsonData, null, 4));
       setBtcPrice(jsonData.price);
-
       setBtcPriceInput(jsonData.price);
+      setCurrentBtcPrice(jsonData.price);
     } catch (error) {
       console.error('Erreur lors de la requête API fetch btc price : ', error);
     }
@@ -250,6 +256,7 @@ const AddExpensePage: React.FC = () => {
         const response = await fetch('/api/quote/bitcoin');
         const jsonData = await response.json();
         setBtcPrice(jsonData.price);
+        setCurrentBtcPrice(jsonData.price);
       } catch (error) {
         console.error('Error fetching bitcoin price:', error);
       }
@@ -341,6 +348,16 @@ const AddExpensePage: React.FC = () => {
     }
   }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice, electricityBillingAmount]);
 
+  useEffect(() => {
+    if (!readOnly) {
+      setBtcPrice(currentBtcPrice);
+      setBtcPriceInput(currentBtcPrice);
+    }
+
+    setBaseElectricityPrice(siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0);
+    setBaseElectricityPriceInput(siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0);
+  }, [modalAddOpened]);
+
   const rows = expenses.map((expense) => (
     <Table.Tr
       key={expense.id}
@@ -351,6 +368,9 @@ const AddExpensePage: React.FC = () => {
       <Table.Td>{formatBTC(expense.electricity)}</Table.Td>
       <Table.Td>{formatBTC(expense.csm)}</Table.Td>
       <Table.Td>{formatBTC(expense.operator)}</Table.Td>
+      <Table.Td>
+        {expense.btcPrice ? formatUsd(expense.btcPrice, 0, expense.currency) : ''}
+      </Table.Td>
       <Table.Td>
         <ActionIcon
           variant="transparent"
@@ -391,7 +411,7 @@ const AddExpensePage: React.FC = () => {
                 <Table.Th>Electricité</Table.Th>
                 <Table.Th>CSM</Table.Th>
                 <Table.Th>Opérateur</Table.Th>
-                <Table.Th />
+                <Table.Th>Prix BTC</Table.Th>
                 <Table.Th />
               </Table.Tr>
             </Table.Thead>

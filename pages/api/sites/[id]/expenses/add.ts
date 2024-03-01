@@ -13,9 +13,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "L'id du site est requis." });
     }
 
-    const { dateTime, electricity, csm, operator } = req.body;
+    const { dateTime, electricity, csm, operator, btcPrice, currency } = req.body;
 
-    if (!dateTime || electricity === undefined || csm === undefined || operator === undefined) {
+    if (
+      !dateTime ||
+      electricity === undefined ||
+      csm === undefined ||
+      operator === undefined ||
+      btcPrice === undefined
+    ) {
       // console.log(
       //   'Les paramètres dateTime, electricity, csm et operator sont requis.',
       //   JSON.stringify(req.body),
@@ -30,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     await addExpense(id as string, {
+      currency: currency as string,
+      btcPrice: parseFloat(btcPrice),
       dateTime: new Date(dateTime).getTime(),
       electricity: parseFloat(electricity),
       csm: parseFloat(csm),
@@ -53,5 +61,7 @@ async function addExpense(siteId: string, expense: Expense) {
     csm: expense.csm,
     operator: expense.operator,
     electricity: expense.electricity,
+    btcPrice: expense.btcPrice,
+    currency: expense.currency,
   });
 }

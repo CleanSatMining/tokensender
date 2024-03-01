@@ -7,6 +7,8 @@ export type Expense = {
   csm: number;
   operator: number;
   electricity: number;
+  btcPrice?: number;
+  currency?: string;
 };
 
 export type Site = {
