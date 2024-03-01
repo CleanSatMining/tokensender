@@ -304,6 +304,8 @@ const AddExpensePage: React.FC = () => {
 
     if (modalAddOpened && month) {
       fetchEbitda();
+    } else {
+      setEbitdaData(undefined);
     }
   }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice, electricityBillingAmount]);
 
