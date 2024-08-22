@@ -290,6 +290,7 @@ const AddExpensePage: React.FC = () => {
           endTimestamp: month ? getLastDayOfMonth(month.getTime()) : 0,
           btcPrice,
           basePricePerKWH: electricityPrice,
+          subaccount: form.values.subaccount === '' ? undefined : form.values.subaccount,
         };
 
         //console.log('fetchEbitda', JSON.stringify(body, null, 4));
@@ -332,6 +333,7 @@ const AddExpensePage: React.FC = () => {
             endTimestamp: month ? getLastDayOfMonth(month.getTime()) : 0,
             btcPrice,
             basePricePerKWH: calculatedElectricityPrice,
+            subaccount: form.values.subaccount === '' ? undefined : form.values.subaccount,
           };
 
           const responseRetry = await fetch(`/api/sites/${siteId}/ebitda`, {
@@ -359,7 +361,15 @@ const AddExpensePage: React.FC = () => {
     } else {
       setEbitdaData(undefined);
     }
-  }, [modalAddOpened, month, siteId, btcPrice, baseElectricityPrice, electricityBillingAmount]);
+  }, [
+    modalAddOpened,
+    month,
+    siteId,
+    btcPrice,
+    baseElectricityPrice,
+    electricityBillingAmount,
+    form.values.subaccount,
+  ]);
 
   useEffect(() => {
     if (!readOnly) {
@@ -515,6 +525,8 @@ const AddExpensePage: React.FC = () => {
               value={getSubAccounts(siteData, siteId)[0].value}
               data={getSubAccounts(siteData, siteId)}
               {...form.getInputProps('subaccount')}
+              required
+              onChange={(value) => form.setFieldValue('subaccount', value ?? '0')}
             />
           )}
           <MonthPickerInput
@@ -879,7 +891,7 @@ function getSiteExpenses(siteId: string, setExpenses: Dispatch<SetStateAction<Ex
       }
 
       const expensesData: Expense[] = await response.json();
-      console.log('expensesData', JSON.stringify(expensesData, null, 4));
+      //console.log('expensesData', JSON.stringify(expensesData, null, 4));
       setExpenses(expensesData);
       return expensesData;
     } catch (error) {
