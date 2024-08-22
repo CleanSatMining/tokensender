@@ -42,6 +42,7 @@ async function getExpenses(siteId: string): Promise<Expense[]> {
       btcPrice: expense.btcPrice as number,
       currency: expense.currency as string,
       siteId,
+      subaccount: expense.subaccount as number,
     };
 
     return e;

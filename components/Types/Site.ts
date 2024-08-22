@@ -21,7 +21,7 @@ export type Site = {
   image: string;
   token: Token;
   status: MiningStatus;
-  api: Api;
+  api: Api[];
   mining: Mining;
   fees: Fees;
   vault: {
@@ -50,6 +50,15 @@ export type Api = {
   username: string | undefined;
   url: string | undefined;
   contractor: Contractor | undefined;
+  subaccount?: {
+    name: string;
+    id: number;
+    profitshare: number;
+    asics: {
+      asicsId: number;
+      machines: number;
+    }[];
+  };
 };
 
 export enum MiningStatus {

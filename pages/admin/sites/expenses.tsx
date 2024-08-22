@@ -15,6 +15,7 @@ import {
   Select,
   Title,
   Switch,
+  ComboboxItem,
 } from '@mantine/core';
 import { MonthPickerInput, DateValue } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
@@ -82,7 +83,7 @@ const AddExpensePage: React.FC = () => {
   const [readOnly, setReadOnly] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<string>('');
   const form = useForm({
-    initialValues: { csm: 0, electricity: 0, operator: 0, dateTime: new Date() },
+    initialValues: { csm: 0, electricity: 0, operator: 0, dateTime: new Date(), subaccount: '0' },
 
     // functions will be used to validate values at corresponding key
     validate: {
@@ -108,8 +109,11 @@ const AddExpensePage: React.FC = () => {
     electricity: number;
     operator: number;
     dateTime: Date;
+    subaccount?: string;
   }) => {
     //await fetch(`/api/sites/${siteId}/expenses/add`);
+
+    console.log('handleAddExpense', JSON.stringify(values, null, 4));
 
     try {
       const response = await fetch(`/api/sites/${siteId}/expenses/add`, {
@@ -125,6 +129,7 @@ const AddExpensePage: React.FC = () => {
           operator: values.operator,
           btcPrice,
           currency,
+          subaccount: values.subaccount,
         }),
       });
 
@@ -375,6 +380,9 @@ const AddExpensePage: React.FC = () => {
         onClick={() => handleRowClick(expense)}
         style={{ cursor: 'pointer' }}
       >
+        {hasSubAccounts(siteData, siteId) && (
+          <Table.Td>{getSubAccountName(siteData, siteId, expense.subaccount ?? -1)}</Table.Td>
+        )}
         <Table.Td>{formatTimestampMonth(expense.dateTime)}</Table.Td>
         <Table.Td>
           {isFiat && expense.btcPrice
@@ -450,6 +458,7 @@ const AddExpensePage: React.FC = () => {
           <Table>
             <Table.Thead>
               <Table.Tr>
+                {hasSubAccounts(siteData, siteId) && <Table.Th>Emplacement</Table.Th>}
                 <Table.Th>Période</Table.Th>
                 <Table.Th>Electricité</Table.Th>
                 <Table.Th>CSM</Table.Th>
@@ -498,6 +507,16 @@ const AddExpensePage: React.FC = () => {
         }}
       >
         <form onSubmit={form.onSubmit((values) => handleAddExpense(values))}>
+          {hasSubAccounts(siteData, siteId) && (
+            <Select
+              label="Emplacement"
+              placeholder="choisir un emplacement"
+              defaultValue={getSubAccounts(siteData, siteId)[0].value}
+              value={getSubAccounts(siteData, siteId)[0].value}
+              data={getSubAccounts(siteData, siteId)}
+              {...form.getInputProps('subaccount')}
+            />
+          )}
           <MonthPickerInput
             readOnly={readOnly}
             clearable
@@ -822,21 +841,51 @@ const AddExpensePage: React.FC = () => {
 
 export default AddExpensePage;
 
+function hasSubAccounts(sites: Map<string, SiteData>, siteId: string): boolean {
+  return sites.get(siteId)?.api[0].subaccount !== undefined;
+}
+
+function getSubAccounts(sites: Map<string, SiteData>, siteId: string): ComboboxItem[] {
+  return hasSubAccounts(sites, siteId)
+    ? sites.get(siteId)?.api.map((api) => ({
+        label: api.subaccount?.name ?? '',
+        value: api.subaccount?.id.toString() ?? '0',
+      })) ?? []
+    : [];
+}
+
+function getSubAccountName(
+  sites: Map<string, SiteData>,
+  siteId: string,
+  subaccountId: number
+): string {
+  return hasSubAccounts(sites, siteId)
+    ? sites
+        .get(siteId)
+        ?.api.find((api) => api.subaccount?.id.toString() === subaccountId.toString())?.subaccount
+        ?.name ?? ''
+    : '';
+}
+
 function getSiteExpenses(siteId: string, setExpenses: Dispatch<SetStateAction<Expense[]>>) {
   return async () => {
     try {
       const response = await fetch(`/api/sites/${siteId}/expenses`);
 
       if (!response.ok) {
-        throw new Error(`Erreur lors de la récupération des dépenses (statut: ${response.status})`);
+        console.error(`Erreur lors de la récupération des dépenses (statut: ${response.status})`);
+        setExpenses([]);
+        return [];
       }
 
-      const expensesData = await response.json();
+      const expensesData: Expense[] = await response.json();
+      console.log('expensesData', JSON.stringify(expensesData, null, 4));
       setExpenses(expensesData);
       return expensesData;
     } catch (error) {
       console.error('Error fetching expenses from API:', error);
-      throw error;
+      setExpenses([]);
+      return [];
     }
   };
 }

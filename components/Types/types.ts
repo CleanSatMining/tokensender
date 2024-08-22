@@ -9,6 +9,7 @@ export type Expense = {
   electricity: number;
   btcPrice?: number;
   currency?: string;
+  subaccount?: number;
 };
 
 export type Site = {

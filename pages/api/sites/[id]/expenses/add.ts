@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "L'id du site est requis." });
     }
 
-    const { dateTime, electricity, csm, operator, btcPrice, currency } = req.body;
+    const { dateTime, electricity, csm, operator, btcPrice, currency, subaccount } = req.body;
 
     if (
       !dateTime ||
@@ -44,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       operator: parseFloat(operator),
       id: id as string,
       siteId: id as string,
+      subaccount: subaccount as number,
     });
 
     return res.status(200).json({ status: 'OK' });
@@ -63,5 +64,6 @@ async function addExpense(siteId: string, expense: Expense) {
     electricity: expense.electricity,
     btcPrice: expense.btcPrice,
     currency: expense.currency,
+    subaccount: expense.subaccount,
   });
 }
