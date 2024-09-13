@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction, use } from 'react';
 import {
   Button,
   Table,
@@ -369,7 +369,26 @@ const AddExpensePage: React.FC = () => {
     baseElectricityPrice,
     electricityBillingAmount,
     form.values.subaccount,
+    electricityPriceModeChecked,
   ]);
+
+  useEffect(() => {
+    if (!electricityPriceModeChecked) {
+      form.setFieldValue(
+        'electricity',
+        new BigNumber(electricityBillingAmount).dividedBy(btcPrice).toNumber()
+      );
+    } else {
+      form.setFieldValue('electricity', ebitdaData?.electricityCost.btc ?? 0);
+    }
+    console.log('ebitdaData form setting');
+    //if (form.getInputProps('csm').value === 0) {
+    form.setFieldValue('csm', ebitdaData?.feeCsm.btc ?? 0);
+    //}
+    //if (form.getInputProps('operator').value === 0) {
+    form.setFieldValue('operator', ebitdaData?.feeOperator.btc ?? 0);
+    //}
+  }, [ebitdaData, electricityPriceModeChecked, electricityBillingAmount, btcPrice]);
 
   useEffect(() => {
     if (!readOnly) {
@@ -427,7 +446,7 @@ const AddExpensePage: React.FC = () => {
         <Table.Td>
           <ActionIcon
             variant="transparent"
-            color="red"
+            color="blue"
             onClick={(e) => {
               e.stopPropagation();
               handleClickDeleteExpense(expense.id);
@@ -455,7 +474,7 @@ const AddExpensePage: React.FC = () => {
             }))}
           />
           <Group>
-            <Button onClick={open}>Ajouter une dépense</Button>
+            <Button onClick={open}>Nouvelle dépense</Button>
             <Switch
               defaultChecked
               label="Afficher en FIAT ($,€)"
@@ -496,7 +515,7 @@ const AddExpensePage: React.FC = () => {
           <Button color="lime" onClick={closeConfirmation}>
             Annuler
           </Button>
-          <Button color="red" onClick={() => handleDeleteExpense()}>
+          <Button color="blue" onClick={() => handleDeleteExpense()}>
             Confirmer
           </Button>
         </Group>
@@ -507,8 +526,8 @@ const AddExpensePage: React.FC = () => {
           handleModalClose();
         }}
         title={
-          <Title order={4}>
-            {`${sites.find((s) => s.id === siteId)?.name} : ${readOnly && month ? formatTimestampMonth(month?.getTime()) : 'Ajouter une dépense'}`}
+          <Title order={4} style={{ color: readOnly ? '#515151' : '#B5CD30' }}>
+            {`${sites.find((s) => s.id === siteId)?.name} : ${readOnly && month ? formatTimestampMonth(month?.getTime()) : 'Nouvelle dépense'}`}
           </Title>
         }
         overlayProps={{
@@ -519,6 +538,7 @@ const AddExpensePage: React.FC = () => {
         <form onSubmit={form.onSubmit((values) => handleAddExpense(values))}>
           {hasSubAccounts(siteData, siteId) && (
             <Select
+              readOnly={readOnly}
               label="Emplacement"
               placeholder="choisir un emplacement"
               defaultValue={getSubAccounts(siteData, siteId)[0].value}
@@ -572,7 +592,7 @@ const AddExpensePage: React.FC = () => {
                 </Group>
               )}
 
-              {!editBtcPrice && (
+              {!editBtcPrice && !readOnly && (
                 <ActionIcon
                   variant="transparent"
                   aria-label="Edit"
@@ -584,13 +604,15 @@ const AddExpensePage: React.FC = () => {
                   <IconEdit style={{ width: '70%', height: '70%' }} stroke={1.5} />
                 </ActionIcon>
               )}
-              <ActionIcon variant="transparent" aria-label="Reload" onClick={fetchBtcPrice}>
-                <IconReload style={{ width: '70%', height: '70%' }} stroke={1.5} />
-              </ActionIcon>
+              {!readOnly && (
+                <ActionIcon variant="transparent" aria-label="Reload" onClick={fetchBtcPrice}>
+                  <IconReload style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                </ActionIcon>
+              )}
               {editBtcPrice && (
                 <>
                   <ActionIcon
-                    color="red"
+                    color="blue"
                     variant="transparent"
                     aria-label="Cancel"
                     onClick={() => setEditBtcPrice(false)}
@@ -614,6 +636,7 @@ const AddExpensePage: React.FC = () => {
           </Group>
           <Group justify="space-between">
             <SegmentedControl
+              readOnly={readOnly}
               size="xs"
               radius="sm"
               data={['Prix élec.', 'Facture élec.']}
@@ -666,7 +689,7 @@ const AddExpensePage: React.FC = () => {
                   }
                 />
               )}
-              {!editBaseElectricityPrice && (
+              {!editBaseElectricityPrice && !readOnly && (
                 <ActionIcon
                   variant="transparent"
                   aria-label="Edit"
@@ -679,26 +702,28 @@ const AddExpensePage: React.FC = () => {
                   <IconEdit style={{ width: '70%', height: '70%' }} stroke={1.5} />
                 </ActionIcon>
               )}
-              <ActionIcon
-                variant="transparent"
-                aria-label="Reload"
-                onClick={() => {
-                  setBaseElectricityPriceInput(
-                    siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
-                  );
-                  setBaseElectricityPrice(
-                    siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
-                  );
-                  setElectricityBillingAmountInput(0);
-                  setElectricityBillingAmount(0);
-                }}
-              >
-                <IconReload style={{ width: '70%', height: '70%' }} stroke={1.5} />
-              </ActionIcon>
+              {!readOnly && (
+                <ActionIcon
+                  variant="transparent"
+                  aria-label="Reload"
+                  onClick={() => {
+                    setBaseElectricityPriceInput(
+                      siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
+                    );
+                    setBaseElectricityPrice(
+                      siteData.get(siteId)?.mining.electricity.usdPricePerKWH ?? 0
+                    );
+                    setElectricityBillingAmountInput(0);
+                    setElectricityBillingAmount(0);
+                  }}
+                >
+                  <IconReload style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                </ActionIcon>
+              )}
               {editBaseElectricityPrice && (
                 <>
                   <ActionIcon
-                    color="red"
+                    color="blue"
                     variant="transparent"
                     aria-label="Cancel"
                     onClick={() => setEditBaseElectricityPrice(false)}
@@ -725,32 +750,32 @@ const AddExpensePage: React.FC = () => {
           {ebitdaData && (
             <>
               <Group mt="xs" justify="space-between">
-                <Text c="red">Revenu</Text>
-                <Text c="red" fw={500}>
+                <Text c="blue">Revenu</Text>
+                <Text c="blue" fw={500}>
                   {`${formatBTC(ebitdaData?.minedBtc.quantity)} (${formatUsd(ebitdaData?.minedBtc.value, 0, currency)})`}
                 </Text>
               </Group>
               <Group justify="space-between">
-                <Text c="red">Uptime</Text>
-                <Text c="red" fw={500}>
+                <Text c="blue">Uptime</Text>
+                <Text c="blue" fw={500}>
                   {`${formatPercent((ebitdaData?.uptime.percent ?? 0) / 100)}`}
                 </Text>
               </Group>
               <Group justify="space-between">
-                <Text c="red">Provision</Text>
-                <Text c="red" fw={500}>
+                <Text c="blue">Provision</Text>
+                <Text c="blue" fw={500}>
                   {`${formatBTC(ebitdaData?.provision.btc)} (${formatUsd(ebitdaData?.provision.usd, 0, currency)})`}
                 </Text>
               </Group>
               <Group justify="space-between">
-                <Text c="red">Ebitda</Text>
-                <Text c="red" fw={500}>
+                <Text c="blue">Ebitda</Text>
+                <Text c="blue" fw={500}>
                   {`${formatBTC(ebitdaData?.EBITDA.btc)} (${formatUsd(ebitdaData?.EBITDA.usd, 0, currency)})`}
                 </Text>
               </Group>
               <Group justify="space-between">
-                <Text c="red">Taxe</Text>
-                <Text c="red" fw={500}>
+                <Text c="blue">Taxe</Text>
+                <Text c="blue" fw={500}>
                   {`${formatBTC(ebitdaData?.taxe.btc)} (${formatUsd(ebitdaData?.taxe.usd, 0, currency)})`}
                 </Text>
               </Group>
@@ -761,7 +786,7 @@ const AddExpensePage: React.FC = () => {
             label="Facture électricité en Bitcoin (₿)"
             placeholder="Montant ₿"
             {...form.getInputProps('electricity')}
-            readOnly={readOnly}
+            readOnly={readOnly || !electricityPriceModeChecked}
             min={0}
             required
           />
@@ -773,8 +798,8 @@ const AddExpensePage: React.FC = () => {
 
           {ebitdaData && (
             <Group>
-              <Text c="red">Coûts estimés :</Text>
-              <Text c="red" fw={500}>
+              <Text c="blue">Coûts estimés :</Text>
+              <Text c="blue" fw={500}>
                 {`${formatBTC(ebitdaData?.electricityCost.btc)} (${formatUsd(ebitdaData?.electricityCost.usd, 0, currency)})`}
               </Text>
             </Group>
@@ -796,8 +821,8 @@ const AddExpensePage: React.FC = () => {
 
           {ebitdaData && (
             <Group>
-              <Text c="red">Coûts estimés :</Text>
-              <Text c="red" fw={500}>
+              <Text c="blue">Coûts estimés :</Text>
+              <Text c="blue" fw={500}>
                 {`${formatBTC(ebitdaData?.feeCsm.btc)} (${formatUsd(ebitdaData?.feeCsm.usd, 0, currency)})`}
               </Text>
             </Group>
@@ -819,8 +844,8 @@ const AddExpensePage: React.FC = () => {
 
           {ebitdaData && (
             <Group>
-              <Text c="red">Coûts estimés :</Text>
-              <Text c="red" fw={500}>
+              <Text c="blue">Coûts estimés :</Text>
+              <Text c="blue" fw={500}>
                 {`${formatBTC(ebitdaData?.feeOperator.btc)} (${formatUsd(ebitdaData?.feeOperator.usd, 0, currency)})`}
               </Text>
             </Group>
@@ -834,7 +859,7 @@ const AddExpensePage: React.FC = () => {
             <Group justify="center">
               <Button
                 mt="sm"
-                color="red"
+                color="blue"
                 onClick={() => {
                   handleModalClose();
                   handleClickDeleteExpense(selectedExpenseId);
